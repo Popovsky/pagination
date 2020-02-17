@@ -24,15 +24,17 @@ app.get('/api', (req, res) => {
     });
 });
 app.get('/', (req, res) => {
-    req.query.page ? 
-        fetch(`http://localhost:3000/api?page=${req.query.page}`)
-            .then(result => result.json())
-            .then(result => {
-                const {results} = result;
-                const html = '<tbody>' + results.map(el => '<tr>' + Object.values(el).map(elem => `<td>${elem}</td>`).join('') + '</tr>').join('') + '</tbody>';
-                res.send(views(html));
-            })
-        : res.send(views(''));
+    fetch(`http://localhost:3000/api?page=${req.query.page ? req.query.page : 1}`)
+        .then(result => result.json())
+        .then(result => {
+            const {info, results} = result;
+            const html = '<tbody>' + results.map(el => '<tr>' + Object.values(el).map(elem => `<td>${elem}</td>`).join('') + '</tr>').join('') + '</tbody>';
+            const pages = new Array;
+            for(let i = 1; i <= info.pages; i++) {
+                pages.push(`<a href="?page=${i}">${i}</a>`);
+            }
+            res.send(views(html, pages.join('')));
+        });
 });
 
 const getNextPageUrl = (current_page, total_pages, url_prefix) => current_page < total_pages ? `${url_prefix}${current_page+1}` : null;
